@@ -60,6 +60,7 @@ jobs:
             /p:OutDir="$binOut" `
             /p:IntDir="$intBase`$(ProjectName)\" `
             /p:CLCompilePDBName="$intBase`$(ProjectName)\`$(ProjectName).pdb" `
+            /p:AdditionalOptions="/FS" `
             /verbosity:$verbosity
 
       - name: Zip
