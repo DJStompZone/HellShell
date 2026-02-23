@@ -54,13 +54,11 @@ jobs:
           New-Item -ItemType Directory -Force $binOut | Out-Null
           New-Item -ItemType Directory -Force $intBase | Out-Null
           
-          msbuild .\HellShell.sln /m `
+          msbuild .\HellShell.sln `
             /p:Configuration=$cfg `
             /p:Platform=$plat `
             /p:OutDir="$binOut" `
             /p:IntDir="$intBase`$(ProjectName)\" `
-            /p:CLCompilePDBName="$intBase`$(ProjectName)\`$(ProjectName).pdb" `
-            /p:AdditionalOptions="/FS" `
             /verbosity:$verbosity
 
       - name: Zip
