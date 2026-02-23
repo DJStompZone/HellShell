@@ -10,9 +10,12 @@
   ███    █▀      ██████████ █████▄▄██ █████▄▄██       ▄████████▀    ███    █▀      ██████████ █████▄▄██ █████▄▄██ 
  
  </pre>
+ <br>
+
+[![release](https://github.com/DJStompZone/HellShell/actions/workflows/msbuild.yml/badge.svg)](https://github.com/DJStompZone/HellShell/actions/workflows/msbuild.yml) ![GitHub License](https://img.shields.io/github/license/djstompzone/hellshell) ![GitHub last commit](https://img.shields.io/github/last-commit/djstompzone/hellshell) ![Discord](https://img.shields.io/discord/599808270655291403?logo=discord)
 
 
-<br>
+
 
 # Usage:
 ### HellShell Supports 3 types of obfuscated shellcode output, all as arrays:
@@ -26,26 +29,4 @@
 # Based On :
 * [hive ransomware deploys novel ipfuscation technique](https://www.sentinelone.com/blog/hive-ransomware-deploys-novel-ipfuscation-technique/)
 * [BypassAnti-Virus](https://github.com/midisec/BypassAnti-Virus)
-
-
-<br>
-
-
-#### The Help Screen:
-![image](https://gitlab.com/ORCA666/hellshell/-/raw/main/images/image1.png)
-
-#### Example:
-![image2](https://gitlab.com/ORCA666/hellshell/-/raw/main/images/demo1.jpg)
-![image3](https://gitlab.com/ORCA666/hellshell/-/raw/main/images/demo2.png)
-
-
-<br>
-
-
-<br>
-
-
-
-<br>
-
 
