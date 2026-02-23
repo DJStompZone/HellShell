@@ -39,26 +39,40 @@ jobs:
         run: |
           $plat = "${{ matrix.platform }}"
           $cfg  = "${{ matrix.config }}"
-
+      
           $logLevel = "${{ inputs.logLevel }}"
-          if (-not $logLevel) { $logLevel = "info" } # tag builds won't have workflow_dispatch inputs
-
+          if (-not $logLevel) { $logLevel = "info" }
+      
           $verbosity = switch ($logLevel) {
             "debug"   { "diag" }
             "warning" { "normal" }
-            default   { "minimal" }  # info
+            default   { "minimal" }
           }
-
-          $binOut = Join-Path $PWD "dist\bin\$plat\$cfg\"
+      
+          $binOut  = Join-Path $PWD "dist\bin\$plat\$cfg\"
           $intBase = Join-Path $PWD "dist\obj\$plat\$cfg\"
-          New-Item -ItemType Directory -Force $binOut | Out-Null
+          New-Item -ItemType Directory -Force $binOut  | Out-Null
           New-Item -ItemType Directory -Force $intBase | Out-Null
+      
+          $propsPath = Join-Path $PWD "ci-overrides.props"
+          @'
+          <Project>
+            <ItemDefinitionGroup>
+              <ClCompile>
+                <!-- PDB write contention fix -->
+                <AdditionalOptions>/FS %(AdditionalOptions)</AdditionalOptions>
+                <MultiProcessorCompilation>false</MultiProcessorCompilation>
+              </ClCompile>
+            </ItemDefinitionGroup>
+          </Project>
+          '@ | Set-Content -Path $propsPath -Encoding UTF8
           
-          msbuild .\HellShell.sln `
+          msbuild .\HellShell.sln /m `
             /p:Configuration=$cfg `
             /p:Platform=$plat `
             /p:OutDir="$binOut" `
-            /p:IntDir="$intBase`$(ProjectName)\" `
+            /p:IntDir="$intBase" `
+            /p:ForceImportBeforeCppTargets="$propsPath" `
             /verbosity:$verbosity
 
       - name: Zip
