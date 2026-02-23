@@ -59,6 +59,7 @@ jobs:
             /p:Platform=$plat `
             /p:OutDir="$binOut" `
             /p:IntDir="$intBase`$(ProjectName)\" `
+            /p:CLCompilePDBName="$intBase`$(ProjectName)\`$(ProjectName).pdb" `
             /verbosity:$verbosity
 
       - name: Zip
