@@ -33,6 +33,34 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Create tag (manual release)
+        if: github.event_name == 'workflow_dispatch'
+        shell: pwsh
+        run: |
+          $tag = "${{ inputs.tag }}"
+      
+          if (-not $tag) {
+            throw "Tag input is required for manual releases"
+          }
+      
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+      
+          git fetch --tags --force
+      
+          git rev-parse -q --verify "refs/tags/$tag" | Out-Null
+          if ($LASTEXITCODE -eq 0) {
+            Write-Host "Tag $tag already exists"
+            exit 0
+          }
+      
+          Write-Host "Creating tag $tag"
+          git tag $tag
+          git push origin "refs/tags/$tag"
 
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v2
@@ -90,26 +118,10 @@ jobs:
           Compress-Archive -Path $src -DestinationPath $zip -Force
           if (-not (Test-Path $zip)) { throw "Zip not created: $zip" }
 
-      - name: Ensure tag exists
-        if: github.event_name == 'workflow_dispatch'
-        shell: pwsh
-        run: |
-          $tag = "${{ inputs.tag }}"
-      
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
-      
-          if (git rev-parse $tag 2>$null) {
-            Write-Host "Tag $tag already exists"
-          } else {
-            Write-Host "Creating tag $tag"
-            git tag $tag
-            git push origin $tag
-          }
-
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
           fail_on_unmatched_files: true
           files: |
             HellShell-windows-${{ matrix.platform }}-${{ matrix.config }}.zip
