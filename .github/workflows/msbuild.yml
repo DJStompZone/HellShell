@@ -3,6 +3,9 @@ name: release
 on:
   workflow_dispatch:
     inputs:
+      tag:
+        description: "Release tag"
+        required: true
       logLevel:
         description: "Log level"
         required: true
@@ -86,6 +89,23 @@ jobs:
           if (Test-Path $zip) { Remove-Item $zip -Force }
           Compress-Archive -Path $src -DestinationPath $zip -Force
           if (-not (Test-Path $zip)) { throw "Zip not created: $zip" }
+
+      - name: Ensure tag exists
+        if: github.event_name == 'workflow_dispatch'
+        shell: pwsh
+        run: |
+          $tag = "${{ inputs.tag }}"
+      
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+      
+          if (git rev-parse $tag 2>$null) {
+            Write-Host "Tag $tag already exists"
+          } else {
+            Write-Host "Creating tag $tag"
+            git tag $tag
+            git push origin $tag
+          }
 
       - name: Release
         uses: softprops/action-gh-release@v2
