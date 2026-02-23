@@ -1,0 +1,82 @@
+name: release
+
+on:
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: "Log level"
+        required: true
+        default: "info"
+        type: choice
+        options:
+          - info
+          - warning
+          - debug
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [x64, Win32]
+        config: [Release]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Build solution
+        shell: pwsh
+        run: |
+          $plat = "${{ matrix.platform }}"
+          $cfg  = "${{ matrix.config }}"
+
+          $logLevel = "${{ inputs.logLevel }}"
+          if (-not $logLevel) { $logLevel = "info" } # tag builds won't have workflow_dispatch inputs
+
+          $verbosity = switch ($logLevel) {
+            "debug"   { "diag" }
+            "warning" { "normal" }
+            default   { "minimal" }  # info
+          }
+
+          $binOut = Join-Path $PWD "dist\bin\$plat\$cfg\"
+          $objOut = Join-Path $PWD "dist\obj\$plat\$cfg\"
+
+          New-Item -ItemType Directory -Force $binOut | Out-Null
+          New-Item -ItemType Directory -Force $objOut | Out-Null
+
+          msbuild .\HellShell.sln /m `
+            /p:Configuration=$cfg `
+            /p:Platform=$plat `
+            /p:OutDir="$binOut" `
+            /p:IntDir="$objOut" `
+            /verbosity:$verbosity
+
+      - name: Zip
+        shell: pwsh
+        run: |
+          $plat = "${{ matrix.platform }}"
+          $cfg  = "${{ matrix.config }}"
+          $zip  = "HellShell-windows-$plat-$cfg.zip"
+          $src  = "dist\bin\$plat\$cfg\*"
+
+          if (Test-Path $zip) { Remove-Item $zip -Force }
+          Compress-Archive -Path $src -DestinationPath $zip -Force
+          if (-not (Test-Path $zip)) { throw "Zip not created: $zip" }
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          fail_on_unmatched_files: true
+          files: |
+            HellShell-windows-${{ matrix.platform }}-${{ matrix.config }}.zip
